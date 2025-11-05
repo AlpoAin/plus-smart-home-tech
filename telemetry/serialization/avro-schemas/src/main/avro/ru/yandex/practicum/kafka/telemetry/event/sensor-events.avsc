@@ -1,0 +1,47 @@
+[
+  { "type":"record","name":"ClimateSensorAvro","namespace":"ru.yandex.practicum.kafka.telemetry.event",
+    "fields":[
+      {"name":"temperature_c","type":"int"},
+      {"name":"humidity","type":"int"},
+      {"name":"co2_level","type":"int"}
+    ]},
+
+  { "type":"record","name":"LightSensorAvro","namespace":"ru.yandex.practicum.kafka.telemetry.event",
+    "fields":[
+      {"name":"link_quality","type":"int"},
+      {"name":"luminosity","type":"int"}
+    ]},
+
+  { "type":"record","name":"MotionSensorAvro","namespace":"ru.yandex.practicum.kafka.telemetry.event",
+    "fields":[
+      {"name":"link_quality","type":"int"},
+      {"name":"motion","type":"boolean"},
+      {"name":"voltage","type":"int"}
+    ]},
+
+  { "type":"record","name":"SwitchSensorAvro","namespace":"ru.yandex.practicum.kafka.telemetry.event",
+    "fields":[ {"name":"state","type":"boolean"} ]},
+
+  { "type":"record","name":"TemperatureSensorAvro","namespace":"ru.yandex.practicum.kafka.telemetry.event",
+    "fields":[
+      {"name":"id","type":"string"},
+      {"name":"hubId","type":"string"},
+      {"name":"timestamp","type":{"type":"long","logicalType":"timestamp-millis"}},
+      {"name":"temperature_c","type":"int"},
+      {"name":"temperature_f","type":"int"}
+    ]},
+
+  { "type":"record","name":"SensorEventAvro","namespace":"ru.yandex.practicum.kafka.telemetry.event",
+    "fields":[
+      {"name":"id","type":"string"},
+      {"name":"hubId","type":"string"},
+      {"name":"timestamp","type":{"type":"long","logicalType":"timestamp-millis"}},
+      {"name":"payload","type":[
+        "ru.yandex.practicum.kafka.telemetry.event.ClimateSensorAvro",
+        "ru.yandex.practicum.kafka.telemetry.event.LightSensorAvro",
+        "ru.yandex.practicum.kafka.telemetry.event.MotionSensorAvro",
+        "ru.yandex.practicum.kafka.telemetry.event.SwitchSensorAvro",
+        "ru.yandex.practicum.kafka.telemetry.event.TemperatureSensorAvro"
+      ]}
+    ]}
+]
