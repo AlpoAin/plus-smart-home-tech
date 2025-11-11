@@ -42,6 +42,7 @@ public class ProtoMapper {
                 dst.setHubId(proto.getHubId());
                 dst.setTimestamp(ts);
                 dst.setLinkQuality(src.getLinkQuality());
+                dst.setMotion(src.getMotion());
                 dst.setVoltage(src.getVoltage());
                 return dst;
             }
@@ -61,6 +62,7 @@ public class ProtoMapper {
                 dst.setId(proto.getId());
                 dst.setHubId(proto.getHubId());
                 dst.setTimestamp(ts);
+                dst.setLinkQuality(src.getLinkQuality());
                 dst.setLuminosity(src.getLuminosity());
                 return dst;
             }
