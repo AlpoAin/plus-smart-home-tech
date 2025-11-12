@@ -1,0 +1,25 @@
+@namespace("ru.yandex.practicum.kafka.telemetry.event")
+protocol SensorsSnapshotProtocol {
+
+  // Импортируем записи датчиков, уже описанные в avsc
+  import schema "../ru/yandex/practicum/kafka/telemetry/event/sensor-events.avsc";
+
+  /** Состояние конкретного датчика на момент времени */
+  record SensorStateAvro {
+    timestamp_ms timestamp;  // время события датчика
+    union {
+      ClimateSensorAvro,
+      LightSensorAvro,
+      MotionSensorAvro,
+      SwitchSensorAvro,
+      TemperatureSensorAvro
+    } data;
+  }
+
+  /** Снимок состояния всех датчиков одного хаба */
+  record SensorsSnapshotAvro {
+    string hubId;                         // идентификатор хаба
+    timestamp_ms timestamp;               // момент времени снимка
+    map<SensorStateAvro> sensorsState;    // key = sensorId
+  }
+}
