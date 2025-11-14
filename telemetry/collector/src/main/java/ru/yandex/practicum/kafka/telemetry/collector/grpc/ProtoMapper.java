@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 @Component
 public class ProtoMapper {
 
-    // ---- SensorEventProto -> api.model.SensorEvent ----
     public SensorEvent toApi(SensorEventProto proto) {
         final Instant ts = (proto.hasTimestamp())
                 ? Instant.ofEpochSecond(proto.getTimestamp().getSeconds(), proto.getTimestamp().getNanos())
@@ -92,7 +91,6 @@ public class ProtoMapper {
         }
     }
 
-    // ---- HubEventProto -> api.model.hub.HubEvent ----
     public ru.yandex.practicum.kafka.telemetry.collector.api.model.hub.HubEvent toApi(HubEventProto proto) {
         final Instant ts = (proto.hasTimestamp())
                 ? Instant.ofEpochSecond(proto.getTimestamp().getSeconds(), proto.getTimestamp().getNanos())
@@ -146,7 +144,6 @@ public class ProtoMapper {
         c.setType(mapConditionType(p.getType()));
         c.setOperation(mapOperation(p.getOperation()));
 
-        // value — oneof: bool_value | int_value
         switch (p.getValueCase()) {
             case BOOL_VALUE -> c.setValue(p.getBoolValue() ? 1 : 0);
             case INT_VALUE  -> c.setValue(p.getIntValue());
@@ -164,7 +161,6 @@ public class ProtoMapper {
         return a;
     }
 
-    // ---- enum mappers ----
     private DeviceType mapDeviceType(ru.yandex.practicum.grpc.telemetry.event.DeviceTypeProto t) {
         return switch (t) {
             case MOTION_SENSOR      -> DeviceType.MOTION_SENSOR;

@@ -113,7 +113,6 @@ public class HubEventProcessor implements Runnable {
                     return s;
                 });
 
-        // если есть старые связи - удаляем
         if (scenario.getId() != null) {
             scenarioConditionLinkRepository.deleteByScenarioId(scenario.getId());
             scenarioActionLinkRepository.deleteByScenarioId(scenario.getId());
@@ -121,7 +120,6 @@ public class HubEventProcessor implements Runnable {
 
         scenario = scenarioRepository.save(scenario);
 
-        // условия
         for (ScenarioConditionAvro cAvro : sa.getConditions()) {
             ensureSensorExists(hubId, cAvro.getSensorId());
 
@@ -139,7 +137,6 @@ public class HubEventProcessor implements Runnable {
             scenarioConditionLinkRepository.save(link);
         }
 
-        // действия
         for (DeviceActionAvro aAvro : sa.getActions()) {
             ensureSensorExists(hubId, aAvro.getSensorId());
 
