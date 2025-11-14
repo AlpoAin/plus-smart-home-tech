@@ -1,4 +1,5 @@
-package ru.yandex.practicum.kafka.telemetry.collector.api.model.hub;
+package ru.yandex.practicum.kafka.telemetry.analyzer.model;
+
 public enum ConditionType {
     MOTION,
     LUMINOSITY,
