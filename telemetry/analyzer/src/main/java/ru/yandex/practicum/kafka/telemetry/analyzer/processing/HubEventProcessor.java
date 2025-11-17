@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.kafka.telemetry.analyzer.config.KafkaConfig;
 import ru.yandex.practicum.kafka.telemetry.analyzer.model.*;
 import ru.yandex.practicum.kafka.telemetry.analyzer.repository.*;
 import ru.yandex.practicum.kafka.telemetry.analyzer.serialization.HubEventDeserializer;
@@ -22,14 +22,13 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class HubEventProcessor implements Runnable {
 
-    @Value("${spring.kafka.bootstrap-servers}")
-    private String bootstrapServers;
-
     @Value("${app.kafka.hubs-group-id}")
     private String groupId;
 
     @Value("${app.topics.hubs}")
     private String hubsTopic;
+
+    private final KafkaConfig kafkaConfig;
 
     private final SensorRepository sensorRepository;
     private final ScenarioRepository scenarioRepository;
@@ -40,15 +39,11 @@ public class HubEventProcessor implements Runnable {
 
     @Override
     public void run() {
-        log.info("Starting HubEventProcessor on topic {}", hubsTopic);
+        log.info("Starting HubEventProcessor on topic {}, bootstrap={}",
+                hubsTopic, kafkaConfig.getBootstrapServers());
 
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, HubEventDeserializer.class.getName());
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true"); // автофикс - повторная обработка допустима
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        Properties props = kafkaConfig.consumerProps(groupId, HubEventDeserializer.class);
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
 
         try (KafkaConsumer<String, HubEventAvro> consumer = new KafkaConsumer<>(props)) {
             consumer.subscribe(List.of(hubsTopic));
