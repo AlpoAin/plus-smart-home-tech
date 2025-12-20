@@ -1,24 +1,24 @@
 package ru.yandex.practicum.interaction.api.dto.store;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 
 public record ProductsPageResponse(
-        List<ProductDto> content,
-        List<ProductDto> products,
+        List<ProductDto> items,
         Page page
 ) {
-    @JsonProperty("items")
-    public List<ProductDto> items() {
-        return content;
-    }
+    @JsonIgnore
+    public List<ProductDto> content() { return items; }
+
+    @JsonIgnore
+    public List<ProductDto> products() { return items; }
 
     public ProductsPageResponse(List<ProductDto> items,
                                 int number,
                                 int size,
                                 long totalElements,
                                 int totalPages) {
-        this(items, items, new Page(size, number, totalElements, totalPages));
+        this(items, new Page(size, number, totalElements, totalPages));
     }
 
     public record Page(
