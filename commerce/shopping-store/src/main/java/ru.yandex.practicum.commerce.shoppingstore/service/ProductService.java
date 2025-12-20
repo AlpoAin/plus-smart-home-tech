@@ -53,14 +53,14 @@ public class ProductService {
         Product p = new Product();
         p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
 
+        applyEditableFields(p, dto);
+
         p.setProductState(ProductState.ACTIVE);
         p.setQuantityState(dto.quantityState() != null ? dto.quantityState() : QuantityState.ENDED);
 
         /*if (p.getQuantityState() == null) {
             p.setQuantityState(QuantityState.ENDED);
         }*/
-
-        applyNotNull(p, dto);
         return toDto(repo.save(p));
     }
 
@@ -69,7 +69,7 @@ public class ProductService {
             throw new IllegalArgumentException("productId is required for update");
         }
         Product p = repo.findById(dto.productId()).orElseThrow(() -> new ProductNotFoundException(dto.productId()));
-        applyNotNull(p, dto);
+        applyEditableFields(p, dto);
         return toDto(repo.save(p));
     }
 
@@ -93,6 +93,14 @@ public class ProductService {
         if (dto.imageSrc() != null) p.setImageSrc(dto.imageSrc());
         if (dto.quantityState() != null) p.setQuantityState(dto.quantityState());
         if (dto.productState() != null) p.setProductState(dto.productState());
+        if (dto.productCategory() != null) p.setProductCategory(dto.productCategory());
+        if (dto.price() != null) p.setPrice(dto.price());
+    }
+
+    private void applyEditableFields(Product p, ProductDto dto) {
+        if (dto.productName() != null) p.setProductName(dto.productName());
+        if (dto.description() != null) p.setDescription(dto.description());
+        if (dto.imageSrc() != null) p.setImageSrc(dto.imageSrc());
         if (dto.productCategory() != null) p.setProductCategory(dto.productCategory());
         if (dto.price() != null) p.setPrice(dto.price());
     }
