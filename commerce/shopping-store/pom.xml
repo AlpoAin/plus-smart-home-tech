@@ -11,38 +11,55 @@
     </parent>
 
     <artifactId>shopping-store</artifactId>
+    <packaging>jar</packaging>
 
     <dependencies>
-        <!-- КЛЮЧЕВО: нормальный web + jackson -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Pageable/Page + репозитории -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
-        <!-- Валидация -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Твои DTO/контракты -->
         <dependency>
             <groupId>ru.yandex.practicum</groupId>
             <artifactId>interaction-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
-        <!-- БД: подставь свою (PostgreSQL/H2 и т.д.) -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Делает jar исполняемым: кладёт Main-Class и зависимости -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!-- если вдруг автоопределение не сработает -->
+                <configuration>
+                    <mainClass>ru.yandex.practicum.commerce.shoppingstore.ShoppingStoreApplication</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
