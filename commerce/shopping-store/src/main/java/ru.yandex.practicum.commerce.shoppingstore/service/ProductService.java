@@ -23,7 +23,6 @@ public class ProductService {
         Sort s = Sort.unsorted();
         if (sort != null && !sort.isEmpty()) {
             for (String token : sort) {
-                // ожидаем формат "field,asc" или "field,desc"
                 String[] parts = token.split(",");
                 String field = parts[0].trim();
                 boolean desc = parts.length > 1 && "desc".equalsIgnoreCase(parts[1].trim());
