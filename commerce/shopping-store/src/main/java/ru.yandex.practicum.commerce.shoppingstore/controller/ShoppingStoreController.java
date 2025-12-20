@@ -2,13 +2,14 @@ package ru.yandex.practicum.commerce.shoppingstore.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.commerce.shoppingstore.service.ProductService;
 import ru.yandex.practicum.interaction.api.contract.ShoppingStoreApi;
 import ru.yandex.practicum.interaction.api.dto.store.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -22,17 +23,17 @@ public class ShoppingStoreController {
     }
 
     /**
-     * ВАЖНО: возвращаем Page<ProductDto>, чтобы тесты видели:
-     * content[0], pageable, sort, totalElements, totalPages и т.д.
+     * Важно для тестов:
+     * - pageable собирается Spring'ом из page/size/sort
+     * - @PageableDefault задаёт дефолтную сортировку, если sort не передан
+     * - возвращаем Page<ProductDto> => JSON будет со стандартными полями content/pageable/sort/totalElements...
      */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<ProductDto> getProducts(
             @RequestParam(required = false) ProductCategory category,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) List<String> sort
+            @PageableDefault(sort = {"productName"}) Pageable pageable
     ) {
-        return service.getProducts(category, page, size, sort);
+        return service.getProducts(category, pageable);
     }
 
     @PutMapping

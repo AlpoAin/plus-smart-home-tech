@@ -1,15 +1,12 @@
 package ru.yandex.practicum.commerce.shoppingstore.service;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.commerce.shoppingstore.model.Product;
 import ru.yandex.practicum.commerce.shoppingstore.repo.ProductRepository;
 import ru.yandex.practicum.interaction.api.dto.store.*;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -22,17 +19,16 @@ public class ProductService {
     }
 
     /**
-     * ВАЖНО для тестов: возвращаем именно Page<ProductDto>,
-     * чтобы в JSON были content + pageable + sort и т.п.
-     * Также фильтруем только ACTIVE товары.
+     * Важно для тестов:
+     * - Pageable приходит готовый от Spring (page/size/sort)
+     * - возвращаем Page<ProductDto>
+     * - фильтруем только ACTIVE
      */
-    public Page<ProductDto> getProducts(ProductCategory category, int page, int size, List<String> sort) {
-        Sort s = buildSort(sort);
-        PageRequest pr = PageRequest.of(page, size, s);
+    public Page<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
 
         Page<Product> productPage = (category == null)
-                ? repo.findByProductState(ProductState.ACTIVE, pr)
-                : repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pr);
+                ? repo.findByProductState(ProductState.ACTIVE, pageable)
+                : repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pageable);
 
         return productPage.map(this::toDto);
     }
@@ -48,6 +44,7 @@ public class ProductService {
 
         applyEditableFields(p, dto);
 
+        // дефолты (если пришли null)
         p.setProductState(dto.productState() != null ? dto.productState() : ProductState.ACTIVE);
         p.setQuantityState(dto.quantityState() != null ? dto.quantityState() : QuantityState.ENDED);
 
@@ -58,8 +55,15 @@ public class ProductService {
         if (dto.productId() == null) {
             throw new IllegalArgumentException("productId is required for update");
         }
-        Product p = repo.findById(dto.productId()).orElseThrow(() -> new ProductNotFoundException(dto.productId()));
+
+        Product p = repo.findById(dto.productId())
+                .orElseThrow(() -> new ProductNotFoundException(dto.productId()));
+
         applyEditableFields(p, dto);
+
+        // обычно состояние/остаток в update не меняют этим эндпойнтом
+        // но если по ТЗ надо — добавишь аналогично create()
+
         return toDto(repo.save(p));
     }
 
@@ -96,58 +100,5 @@ public class ProductService {
                 p.getProductCategory(),
                 p.getPrice()
         );
-    }
-
-    /**
-     * Поддерживает варианты:
-     * sort=price,DESC
-     * sort=price,DESC&sort=productName,ASC
-     * sort=price,DESC,productName,ASC
-     */
-    private Sort buildSort(List<String> sortParams) {
-        if (sortParams == null || sortParams.isEmpty()) {
-            return Sort.unsorted();
-        }
-
-        List<String> tokens = new ArrayList<>();
-        for (String s : sortParams) {
-            if (s == null) continue;
-            String t = s.trim();
-            if (t.isEmpty()) continue;
-
-            if (t.contains(",")) {
-                for (String p : t.split(",")) {
-                    String x = p.trim();
-                    if (!x.isEmpty()) tokens.add(x);
-                }
-            } else {
-                tokens.add(t);
-            }
-        }
-
-        Sort result = Sort.unsorted();
-        for (int i = 0; i < tokens.size(); ) {
-            String field = tokens.get(i);
-
-            // если внезапно пришло "ASC"/"DESC" без поля — пропустим
-            if ("ASC".equalsIgnoreCase(field) || "DESC".equalsIgnoreCase(field)) {
-                i++;
-                continue;
-            }
-
-            String dir = (i + 1 < tokens.size()) ? tokens.get(i + 1) : null;
-            if (dir != null && ("ASC".equalsIgnoreCase(dir) || "DESC".equalsIgnoreCase(dir))) {
-                result = result.and("DESC".equalsIgnoreCase(dir)
-                        ? Sort.by(field).descending()
-                        : Sort.by(field).ascending());
-                i += 2;
-            } else {
-                // если направление не указали — по умолчанию ASC
-                result = result.and(Sort.by(field).ascending());
-                i += 1;
-            }
-        }
-
-        return result;
     }
 }
