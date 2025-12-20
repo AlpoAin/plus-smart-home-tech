@@ -84,7 +84,6 @@ public class WarehouseService {
     }
 
     public AddressDto address() {
-        // по ТЗ дублируем строку ADDRESS_1/ADDRESS_2 во все поля
         return new AddressDto(CURRENT_ADDRESS, CURRENT_ADDRESS, CURRENT_ADDRESS, CURRENT_ADDRESS, CURRENT_ADDRESS);
     }
 }
