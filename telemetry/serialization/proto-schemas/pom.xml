@@ -13,21 +13,18 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
 
-        <!-- версии -->
         <grpc.version>1.63.0</grpc.version>
         <protobuf.java.version>3.25.1</protobuf.java.version>
         <protoc.version>3.25.1</protoc.version>
     </properties>
 
     <dependencies>
-        <!-- well-known types и базовые классы Protobuf -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
             <version>${protobuf.java.version}</version>
         </dependency>
 
-        <!-- gRPC: кодек protobuf и stubs -->
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
@@ -46,7 +43,6 @@
     </dependencies>
 
     <build>
-        <!-- нужен для ${os.detected.classifier} -->
         <extensions>
             <extension>
                 <groupId>kr.motd.maven</groupId>
@@ -56,22 +52,18 @@
         </extensions>
 
         <plugins>
-            <!-- ПРОВЕРЕННЫЙ плагин генерации -->
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
                 <version>0.6.1</version>
 
                 <configuration>
-                    <!-- у тебя схемы лежат в src/main/protobuf -->
                     <protoSourceRoot>${project.basedir}/src/main/protobuf</protoSourceRoot>
 
-                    <!-- бинарник protoc под твою ОС -->
                     <protocArtifact>
                         com.google.protobuf:protoc:${protoc.version}:exe:${os.detected.classifier}
                     </protocArtifact>
 
-                    <!-- подключаем генератор gRPC для Java -->
                     <pluginId>grpc-java</pluginId>
                     <pluginArtifact>
                         io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}
@@ -81,9 +73,7 @@
                 <executions>
                     <execution>
                         <goals>
-                            <!-- генерирует Java-код сообщений -->
                             <goal>compile</goal>
-                            <!-- генерирует gRPC-stubs -->
                             <goal>compile-custom</goal>
                         </goals>
                     </execution>

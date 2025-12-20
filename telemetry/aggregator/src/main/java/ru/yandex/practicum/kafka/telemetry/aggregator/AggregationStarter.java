@@ -32,7 +32,6 @@ public class AggregationStarter {
     @Value("${app.topics.sensors}")           private String sensorsTopic;
     @Value("${app.topics.snapshots}")         private String snapshotsTopic;
 
-    // Состояния: hubId -> snapshot
     private final Map<String, SensorsSnapshotAvro> snapshots = new ConcurrentHashMap<>();
 
     private KafkaConsumer<String, SensorEventAvro> consumer;
@@ -41,7 +40,6 @@ public class AggregationStarter {
     public void start() {
         log.info("Starting Aggregator: sensors={}, snapshots={}, bootstrap={}", sensorsTopic, snapshotsTopic, bootstrapServers);
 
-        // --- init consumer
         var cProps = new Properties();
         cProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         cProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
@@ -53,7 +51,6 @@ public class AggregationStarter {
         consumer = new KafkaConsumer<>(cProps);
         consumer.subscribe(List.of(sensorsTopic));
 
-        // --- init producer
         var pProps = new Properties();
         pProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         pProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
@@ -83,12 +80,11 @@ public class AggregationStarter {
                     });
                 });
 
-                // фиксируем смещения только после успешной обработки
                 consumer.commitAsync();
             }
 
         } catch (WakeupException ignored) {
-            // ignore
+
         } catch (Exception e) {
             log.error("Ошибка во время обработки событий от датчиков", e);
         } finally {
@@ -108,14 +104,10 @@ public class AggregationStarter {
         }
     }
 
-    /**
-     * Обновляет снапшот соответствующего хаба. Пишем снапшот только если он действительно изменился.
-     */
     private Optional<SensorsSnapshotAvro> updateState(SensorEventAvro event) {
         final String hubId = event.getHubId().toString();
         final String sensorId = event.getId().toString();
 
-        // достаём/создаём снапшот
         SensorsSnapshotAvro snapshot = snapshots.computeIfAbsent(hubId, h -> {
             var s = new SensorsSnapshotAvro();
             s.setHubId(h);
@@ -124,15 +116,12 @@ public class AggregationStarter {
             return s;
         });
 
-        // текущее состояние датчика в снапшоте
         SensorStateAvro oldState = snapshot.getSensorsState().get(sensorId);
 
-        // готовим новое состояние из события
         var newState = new SensorStateAvro();
         newState.setTimestamp(event.getTimestamp());
-        newState.setData(event.getPayload()); // union-объект (класс одного из *SensorAvro)
+        newState.setData(event.getPayload());
 
-        // дедупликация: если старый ts новее или данные те же — ничего не делаем
         if (oldState != null) {
             boolean older = oldState.getTimestamp().isAfter(newState.getTimestamp());
             boolean sameData = Objects.equals(oldState.getData(), newState.getData());
@@ -142,9 +131,7 @@ public class AggregationStarter {
             }
         }
 
-        // записываем свежие данные датчика
         snapshot.getSensorsState().put(sensorId, newState);
-        // timestamp снимка — момент последнего обновления
         snapshot.setTimestamp(event.getTimestamp());
 
         return Optional.of(snapshot);
