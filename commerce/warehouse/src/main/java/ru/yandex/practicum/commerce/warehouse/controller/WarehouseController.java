@@ -1,11 +1,14 @@
 package ru.yandex.practicum.commerce.warehouse.controller;
 
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.commerce.warehouse.service.WarehouseService;
 import ru.yandex.practicum.interaction.api.contract.WarehouseApi;
 import ru.yandex.practicum.interaction.api.dto.cart.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.dto.warehouse.*;
 
+@Validated
 @RestController
 public class WarehouseController implements WarehouseApi {
 
@@ -16,21 +19,25 @@ public class WarehouseController implements WarehouseApi {
     }
 
     @Override
-    public void newProductInWarehouse(NewProductInWarehouseRequest request) {
+    @PutMapping(WarehouseApi.BASE)
+    public void newProductInWarehouse(@Valid @RequestBody NewProductInWarehouseRequest request) {
         service.newProduct(request);
     }
 
     @Override
-    public void addProductToWarehouse(AddProductToWarehouseRequest request) {
+    @PostMapping(WarehouseApi.BASE + "/add")
+    public void addProductToWarehouse(@Valid @RequestBody AddProductToWarehouseRequest request) {
         service.add(request);
     }
 
     @Override
-    public BookedProductsDto checkProductQuantityEnoughForShoppingCart(ShoppingCartDto shoppingCart) {
+    @PostMapping(WarehouseApi.BASE + "/check")
+    public BookedProductsDto checkProductQuantityEnoughForShoppingCart(@Valid @RequestBody ShoppingCartDto shoppingCart) {
         return service.check(shoppingCart);
     }
 
     @Override
+    @GetMapping(WarehouseApi.BASE + "/address")
     public AddressDto getWarehouseAddress() {
         return service.address();
     }

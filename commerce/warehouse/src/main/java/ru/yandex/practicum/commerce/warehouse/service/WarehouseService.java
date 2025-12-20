@@ -84,6 +84,6 @@ public class WarehouseService {
     }
 
     public AddressDto address() {
-        return new AddressDto(CURRENT_ADDRESS, CURRENT_ADDRESS, CURRENT_ADDRESS, CURRENT_ADDRESS, CURRENT_ADDRESS);
+        return new AddressDto("KZ", "Almaty", "Abylai Khan", "1", "1");
     }
 }
