@@ -1,5 +1,6 @@
 package ru.yandex.practicum.commerce.shoppingstore.service;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -20,20 +21,17 @@ public class ProductService {
         this.repo = repo;
     }
 
-    // ВАЖНО: возвращаем List, не Page (тесты ждут массив)
-    public List<ProductDto> getProducts(ProductCategory category, int page, int size, List<String> sort) {
+    public Page<ProductDto> getProducts(ProductCategory category, int page, int size, List<String> sort) {
         Sort s = buildSort(sort);
         PageRequest pr = PageRequest.of(page, size, s);
 
         if (category == null) {
             return repo.findByProductState(ProductState.ACTIVE, pr)
-                    .map(this::toDto)
-                    .getContent();
+                    .map(this::toDto);
         }
 
         return repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pr)
-                .map(this::toDto)
-                .getContent();
+                .map(this::toDto);
     }
 
     public ProductDto getProduct(UUID id) {
@@ -45,7 +43,6 @@ public class ProductService {
         Product p = new Product();
         p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
 
-        // дефолты, чтобы продукт не "пропал" из выдачи
         p.setProductState(ProductState.ACTIVE);
         if (p.getQuantityState() == null) {
             p.setQuantityState(QuantityState.ENDED);
@@ -78,7 +75,6 @@ public class ProductService {
         return true;
     }
 
-    // Не затираем поля null-ами
     private void applyNotNull(Product p, ProductDto dto) {
         if (dto.productName() != null) p.setProductName(dto.productName());
         if (dto.description() != null) p.setDescription(dto.description());
