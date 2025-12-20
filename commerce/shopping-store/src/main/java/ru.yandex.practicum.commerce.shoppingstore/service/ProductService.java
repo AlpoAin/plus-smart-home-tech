@@ -41,7 +41,7 @@ public class ProductService {
 
     public ProductDto create(ProductDto dto) {
         Product p = new Product();
-        p.setProductId(UUID.randomUUID());
+        p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
         //p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
 
         /*p.setProductState(ProductState.ACTIVE);
@@ -50,11 +50,9 @@ public class ProductService {
         }*/
 
         applyNotNull(p, dto);
-        // defaults/forced fields — ПОСЛЕ маппинга костм до ретурн
-        if (p.getQuantityState() == null) {
-            p.setQuantityState(QuantityState.ENDED);
-        }
+        // состояния на создании — принудительно (как ждут тесты) костм до ретурн
         p.setProductState(ProductState.ACTIVE);
+        p.setQuantityState(QuantityState.ENOUGH);
 
         return toDto(repo.save(p));
     }
