@@ -42,9 +42,15 @@ public class ProductService {
     public ProductDto create(ProductDto dto) {
         Product p = new Product();
         p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
-        apply(p, dto);
-        repo.save(p);
-        return toDto(p);
+
+        p.setProductState(ProductState.ACTIVE);
+
+        p.setQuantityState(QuantityState.ENDED);
+
+        applyForCreateOrUpdate(p, dto);
+
+        Product saved = repo.save(p);
+        return toDto(saved);
     }
 
     public ProductDto update(ProductDto dto) {
@@ -52,9 +58,11 @@ public class ProductService {
             throw new IllegalArgumentException("productId is required for update");
         }
         Product p = repo.findById(dto.productId()).orElseThrow(() -> new ProductNotFoundException(dto.productId()));
-        apply(p, dto);
-        repo.save(p);
-        return toDto(p);
+
+        applyForCreateOrUpdate(p, dto);
+
+        Product saved = repo.save(p);
+        return toDto(saved);
     }
 
     public boolean deactivate(UUID id) {
@@ -71,14 +79,16 @@ public class ProductService {
         return true;
     }
 
-    private void apply(Product p, ProductDto dto) {
-        p.setProductName(dto.productName());
-        p.setDescription(dto.description());
-        p.setImageSrc(dto.imageSrc());
-        p.setQuantityState(dto.quantityState());
-        p.setProductState(dto.productState());
-        p.setProductCategory(dto.productCategory());
-        p.setPrice(dto.price());
+    private void applyForCreateOrUpdate(Product p, ProductDto dto) {
+        if (dto.productName() != null) p.setProductName(dto.productName());
+        if (dto.description() != null) p.setDescription(dto.description());
+        if (dto.imageSrc() != null) p.setImageSrc(dto.imageSrc());
+
+        if (dto.quantityState() != null) p.setQuantityState(dto.quantityState());
+        if (dto.productState() != null) p.setProductState(dto.productState());
+
+        if (dto.productCategory() != null) p.setProductCategory(dto.productCategory());
+        if (dto.price() != null) p.setPrice(dto.price());
     }
 
     private ProductDto toDto(Product p) {
