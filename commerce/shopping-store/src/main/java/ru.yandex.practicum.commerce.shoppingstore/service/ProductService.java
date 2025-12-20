@@ -42,17 +42,17 @@ public class ProductService {
     public ProductDto create(ProductDto dto) {
         Product p = new Product();
         p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
-        //p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
 
-        /*p.setProductState(ProductState.ACTIVE);
+        // сначала применяем поля из dto (включая quantityState!)
+        applyNotNull(p, dto);
+
+        // сервер управляет productState при создании
+        p.setProductState(ProductState.ACTIVE);
+
+        // дефолт quantityState только если в dto не прислали
         if (p.getQuantityState() == null) {
             p.setQuantityState(QuantityState.ENDED);
-        }*/
-
-        applyNotNull(p, dto);
-        // состояния на создании — принудительно (как ждут тесты) костм до ретурн
-        p.setProductState(ProductState.ACTIVE);
-        p.setQuantityState(QuantityState.ENOUGH);
+        }
 
         return toDto(repo.save(p));
     }
@@ -88,6 +88,12 @@ public class ProductService {
         //if (dto.productState() != null) p.setProductState(dto.productState());
         if (dto.productCategory() != null) p.setProductCategory(dto.productCategory());
         if (dto.price() != null) p.setPrice(dto.price());
+        // ВАЖНО: это должно быть!
+        if (dto.quantityState() != null) p.setQuantityState(dto.quantityState());
+
+        // productState лучше менять только в update/deactivate,
+        // но если оставишь — create всё равно перезатрёт на ACTIVE
+        if (dto.productState() != null) p.setProductState(dto.productState());
     }
 
     private ProductDto toDto(Product p) {
