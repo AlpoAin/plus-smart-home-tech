@@ -1,5 +1,8 @@
 package ru.yandex.practicum.commerce.shoppingcart.controller;
 
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.commerce.shoppingcart.service.ShoppingCartService;
 import ru.yandex.practicum.interaction.api.contract.ShoppingCartApi;
@@ -20,27 +23,30 @@ public class ShoppingCartController implements ShoppingCartApi {
     }
 
     @Override
-    public ShoppingCartDto getShoppingCart(String username) {
+    public ShoppingCartDto getShoppingCart(@RequestParam String username) {
         return service.getOrCreate(username);
     }
 
     @Override
-    public ShoppingCartDto addProductToShoppingCart(String username, Map<UUID, Long> products) {
+    public ShoppingCartDto addProductToShoppingCart(@RequestParam String username,
+                                                    @RequestBody Map<UUID, Long> products) {
         return service.add(username, products);
     }
 
     @Override
-    public ShoppingCartDto removeFromShoppingCart(String username, List<UUID> products) {
+    public ShoppingCartDto removeFromShoppingCart(@RequestParam String username,
+                                                  @RequestBody List<UUID> products) {
         return service.remove(username, products);
     }
 
     @Override
-    public ShoppingCartDto changeProductQuantity(String username, ChangeProductQuantityRequest request) {
+    public ShoppingCartDto changeProductQuantity(@RequestParam String username,
+                                                 @Valid @RequestBody ChangeProductQuantityRequest request) {
         return service.changeQuantity(username, request);
     }
 
     @Override
-    public void deactivateCurrentShoppingCart(String username) {
+    public void deactivateCurrentShoppingCart(@RequestParam String username) {
         service.deactivate(username);
     }
 }

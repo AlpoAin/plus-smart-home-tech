@@ -7,6 +7,7 @@ import ru.yandex.practicum.commerce.shoppingstore.model.Product;
 import ru.yandex.practicum.commerce.shoppingstore.repo.ProductRepository;
 import ru.yandex.practicum.interaction.api.dto.store.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,15 +21,14 @@ public class ProductService {
     }
 
     public List<ProductDto> getProducts(ProductCategory category, int page, int size, List<String> sort) {
-        Sort s = Sort.unsorted();
-        if (sort != null && !sort.isEmpty()) {
-            for (String token : sort) {
-                String[] parts = token.split(",");
-                String field = parts[0].trim();
-                boolean desc = parts.length > 1 && "desc".equalsIgnoreCase(parts[1].trim());
-                s = s.and(desc ? Sort.by(field).descending() : Sort.by(field).ascending());
-            }
+        Sort s = buildSort(sort);
+
+        if (category == null) {
+            return repo.findByProductState(ProductState.ACTIVE, PageRequest.of(page, size, s))
+                    .map(this::toDto)
+                    .toList();
         }
+
         return repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, PageRequest.of(page, size, s))
                 .map(this::toDto)
                 .toList();
@@ -36,9 +36,6 @@ public class ProductService {
 
     public ProductDto getProduct(UUID id) {
         Product p = repo.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
-        if (p.getProductState() == ProductState.DEACTIVATE) {
-            throw new ProductNotFoundException(id);
-        }
         return toDto(p);
     }
 
@@ -95,5 +92,50 @@ public class ProductService {
                 p.getProductCategory(),
                 p.getPrice()
         );
+    }
+
+    private Sort buildSort(List<String> sortParams) {
+        if (sortParams == null || sortParams.isEmpty()) {
+            return Sort.unsorted();
+        }
+
+        List<String> tokens = new ArrayList<>();
+        for (String s : sortParams) {
+            if (s == null) continue;
+            String t = s.trim();
+            if (t.isEmpty()) continue;
+
+            if (t.contains(",")) {
+                for (String p : t.split(",")) {
+                    String x = p.trim();
+                    if (!x.isEmpty()) tokens.add(x);
+                }
+            } else {
+                tokens.add(t);
+            }
+        }
+
+        Sort result = Sort.unsorted();
+        for (int i = 0; i < tokens.size(); ) {
+            String field = tokens.get(i);
+
+            if ("ASC".equalsIgnoreCase(field) || "DESC".equalsIgnoreCase(field)) {
+                i++;
+                continue;
+            }
+
+            String dir = (i + 1 < tokens.size()) ? tokens.get(i + 1) : null;
+            if (dir != null && ("ASC".equalsIgnoreCase(dir) || "DESC".equalsIgnoreCase(dir))) {
+                result = result.and("DESC".equalsIgnoreCase(dir)
+                        ? Sort.by(field).descending()
+                        : Sort.by(field).ascending());
+                i += 2;
+            } else {
+                result = result.and(Sort.by(field).ascending());
+                i += 1;
+            }
+        }
+
+        return result;
     }
 }

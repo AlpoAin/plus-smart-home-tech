@@ -1,6 +1,8 @@
 package ru.yandex.practicum.commerce.shoppingstore.controller;
 
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.commerce.shoppingstore.service.ProductService;
 import ru.yandex.practicum.interaction.api.contract.ShoppingStoreApi;
 import ru.yandex.practicum.interaction.api.dto.store.*;
@@ -18,27 +20,42 @@ public class ShoppingStoreController implements ShoppingStoreApi {
     }
 
     @Override
-    public List<ProductDto> getProducts(ProductCategory category, int page, int size, List<String> sort) {
+    public List<ProductDto> getProducts(
+            @RequestParam(required = false) ProductCategory category,
+            @RequestParam(defaultValue = "0", required = false) int page,
+            @RequestParam(defaultValue = "10", required = false) int size,
+            @RequestParam(required = false) List<String> sort
+    ) {
         return service.getProducts(category, page, size, sort);
     }
 
     @Override
-    public ProductDto createNewProduct(ProductDto productDto) {
+    public ProductDto createNewProduct(@Valid @RequestBody ProductDto productDto) {
         return service.create(productDto);
     }
 
     @Override
-    public ProductDto updateProduct(ProductDto productDto) {
+    public ProductDto updateProduct(@Valid @RequestBody ProductDto productDto) {
         return service.update(productDto);
     }
 
     @Override
-    public boolean removeProductFromStore(UUID productId) {
+    public boolean removeProductFromStore(@RequestBody UUID productId) {
         return service.deactivate(productId);
     }
 
+    @PostMapping(
+            value = ShoppingStoreApi.BASE + "/quantityState",
+            params = {"productId", "quantityState"},
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public boolean setProductQuantityStateFromParams(@RequestParam UUID productId,
+                                                     @RequestParam QuantityState quantityState) {
+        return service.setQuantityState(new SetProductQuantityStateRequest(productId, quantityState));
+    }
+
     @Override
-    public boolean setProductQuantityState(SetProductQuantityStateRequest request) {
+    public boolean setProductQuantityState(@Valid @RequestBody SetProductQuantityStateRequest request) {
         return service.setQuantityState(request);
     }
 
