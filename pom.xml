@@ -92,7 +92,7 @@
                 <version>${grpc.version}</version>
             </dependency>
 
-            <!--    / GRPC dependencies management        -->
+            <!--    / GRPC dependencies management       -->
         </dependencies>
     </dependencyManagement>
 
