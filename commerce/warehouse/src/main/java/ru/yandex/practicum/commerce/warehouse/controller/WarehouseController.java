@@ -9,7 +9,6 @@ import ru.yandex.practicum.interaction.api.contract.WarehouseApi;
 import ru.yandex.practicum.interaction.api.dto.cart.ShoppingCartDto;
 import ru.yandex.practicum.interaction.api.dto.warehouse.*;
 
-@Validated
 @RestController
 public class WarehouseController implements WarehouseApi {
 

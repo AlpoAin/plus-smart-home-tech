@@ -1,5 +1,6 @@
 package ru.yandex.practicum.commerce.shoppingstore.service;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -20,18 +21,17 @@ public class ProductService {
         this.repo = repo;
     }
 
-    public List<ProductDto> getProducts(ProductCategory category, int page, int size, List<String> sort) {
+    public Page<ProductDto> getProducts(ProductCategory category, int page, int size, List<String> sort) {
         Sort s = buildSort(sort);
+        PageRequest pr = PageRequest.of(page, size, s);
 
         if (category == null) {
-            return repo.findByProductState(ProductState.ACTIVE, PageRequest.of(page, size, s))
-                    .map(this::toDto)
-                    .toList();
+            return repo.findByProductState(ProductState.ACTIVE, pr)
+                    .map(this::toDto);
         }
 
-        return repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, PageRequest.of(page, size, s))
-                .map(this::toDto)
-                .toList();
+        return repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pr)
+                .map(this::toDto);
     }
 
     public ProductDto getProduct(UUID id) {
