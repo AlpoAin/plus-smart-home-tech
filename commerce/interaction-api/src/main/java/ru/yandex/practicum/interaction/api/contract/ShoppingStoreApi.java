@@ -9,27 +9,28 @@ import ru.yandex.practicum.interaction.api.dto.store.SetProductQuantityStateRequ
 import java.util.List;
 import java.util.UUID;
 
-@RequestMapping("/api/v1/shopping-store")
 public interface ShoppingStoreApi {
 
-    @GetMapping
+    String BASE = "/api/v1/shopping-store";
+
+    @GetMapping(BASE)
     List<ProductDto> getProducts(@RequestParam ProductCategory category,
                                  @RequestParam int page,
                                  @RequestParam int size,
                                  @RequestParam(required = false) List<String> sort);
 
-    @PutMapping
+    @PutMapping(BASE)
     ProductDto createNewProduct(@Valid @RequestBody ProductDto productDto);
 
-    @PostMapping
+    @PostMapping(BASE)
     ProductDto updateProduct(@Valid @RequestBody ProductDto productDto);
 
-    @PostMapping("/removeProductFromStore")
+    @PostMapping(BASE + "/removeProductFromStore")
     boolean removeProductFromStore(@RequestBody UUID productId);
 
-    @PostMapping("/quantityState")
+    @PostMapping(BASE + "/quantityState")
     boolean setProductQuantityState(@Valid @RequestBody SetProductQuantityStateRequest request);
 
-    @GetMapping("/{productId}")
+    @GetMapping(BASE + "/{productId}")
     ProductDto getProduct(@PathVariable UUID productId);
 }

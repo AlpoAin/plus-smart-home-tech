@@ -9,24 +9,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@RequestMapping("/api/v1/shopping-cart")
 public interface ShoppingCartApi {
 
-    @GetMapping
+    String BASE = "/api/v1/shopping-cart";
+
+    @GetMapping(BASE)
     ShoppingCartDto getShoppingCart(@RequestParam String username);
 
-    @PutMapping
+    @PutMapping(BASE)
     ShoppingCartDto addProductToShoppingCart(@RequestParam String username,
                                              @RequestBody Map<UUID, Long> products);
 
-    @PostMapping("/remove")
+    @PostMapping(BASE + "/remove")
     ShoppingCartDto removeFromShoppingCart(@RequestParam String username,
                                            @RequestBody List<UUID> products);
 
-    @PostMapping("/change-quantity")
+    @PostMapping(BASE + "/change-quantity")
     ShoppingCartDto changeProductQuantity(@RequestParam String username,
                                           @Valid @RequestBody ChangeProductQuantityRequest request);
 
-    @DeleteMapping
+    @DeleteMapping(BASE)
     void deactivateCurrentShoppingCart(@RequestParam String username);
 }
