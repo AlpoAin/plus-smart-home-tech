@@ -13,8 +13,8 @@ import ru.yandex.practicum.interaction.api.dto.store.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(ShoppingStoreApi.BASE)
-public class ShoppingStoreController {
+@RequestMapping
+public class ShoppingStoreController implements ShoppingStoreApi {
 
     private final ProductService service;
 
@@ -22,13 +22,8 @@ public class ShoppingStoreController {
         this.service = service;
     }
 
-    /**
-     * Важно для тестов:
-     * - pageable собирается Spring'ом из page/size/sort
-     * - @PageableDefault задаёт дефолтную сортировку, если sort не передан
-     * - возвращаем Page<ProductDto> => JSON будет со стандартными полями content/pageable/sort/totalElements...
-     */
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @Override
+    @GetMapping(value = BASE, produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<ProductDto> getProducts(
             @RequestParam(required = false) ProductCategory category,
             @PageableDefault(sort = {"productName"}) Pageable pageable
@@ -36,37 +31,41 @@ public class ShoppingStoreController {
         return service.getProducts(category, pageable);
     }
 
-    @PutMapping
+    @Override
+    @PutMapping(value = BASE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ProductDto createNewProduct(@Valid @RequestBody ProductDto productDto) {
         return service.create(productDto);
     }
 
-    @PostMapping
+    @Override
+    @PostMapping(value = BASE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ProductDto updateProduct(@Valid @RequestBody ProductDto productDto) {
         return service.update(productDto);
     }
 
-    @PostMapping("/removeProductFromStore")
+    @Override
+    @PostMapping(value = BASE + "/removeProductFromStore", produces = MediaType.APPLICATION_JSON_VALUE)
     public boolean removeProductFromStore(@RequestBody UUID productId) {
         return service.deactivate(productId);
     }
 
-    @PostMapping(
-            value = "/quantityState",
-            params = {"productId", "quantityState"},
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+    // ТЕСТОВЫЙ ВАРИАНТ: query params
+    @Override
+    @PostMapping(value = BASE + "/quantityState", params = {"productId", "quantityState"})
     public boolean setProductQuantityStateFromParams(@RequestParam UUID productId,
                                                      @RequestParam QuantityState quantityState) {
-        return service.setQuantityState(new SetProductQuantityStateRequest(productId, quantityState));
+        return service.setQuantityState(productId, quantityState);
     }
 
-    @PostMapping("/quantityState")
+    // Доп вариант: body
+    @Override
+    @PostMapping(value = BASE + "/quantityState", produces = MediaType.APPLICATION_JSON_VALUE)
     public boolean setProductQuantityState(@Valid @RequestBody SetProductQuantityStateRequest request) {
         return service.setQuantityState(request);
     }
 
-    @GetMapping("/{productId}")
+    @Override
+    @GetMapping(value = BASE + "/{productId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ProductDto getProduct(@PathVariable UUID productId) {
         return service.getProduct(productId);
     }

@@ -18,14 +18,7 @@ public class ProductService {
         this.repo = repo;
     }
 
-    /**
-     * Важно для тестов:
-     * - Pageable приходит готовый от Spring (page/size/sort)
-     * - возвращаем Page<ProductDto>
-     * - фильтруем только ACTIVE
-     */
     public Page<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
-
         Page<Product> productPage = (category == null)
                 ? repo.findByProductState(ProductState.ACTIVE, pageable)
                 : repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pageable);
@@ -42,9 +35,14 @@ public class ProductService {
         Product p = new Product();
         p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
 
-        applyEditableFields(p, dto);
+        // обязательные поля из dto (по тестам они всегда есть)
+        p.setProductName(dto.productName());
+        p.setDescription(dto.description());
+        p.setImageSrc(dto.imageSrc());
+        p.setProductCategory(dto.productCategory());
+        p.setPrice(dto.price());
 
-        // дефолты (если пришли null)
+        // состояние
         p.setProductState(dto.productState() != null ? dto.productState() : ProductState.ACTIVE);
         p.setQuantityState(dto.quantityState() != null ? dto.quantityState() : QuantityState.ENDED);
 
@@ -59,10 +57,16 @@ public class ProductService {
         Product p = repo.findById(dto.productId())
                 .orElseThrow(() -> new ProductNotFoundException(dto.productId()));
 
-        applyEditableFields(p, dto);
+        // обновляем только изменяемые поля (как в твоём коде)
+        if (dto.productName() != null) p.setProductName(dto.productName());
+        if (dto.description() != null) p.setDescription(dto.description());
+        if (dto.imageSrc() != null) p.setImageSrc(dto.imageSrc());
+        if (dto.productCategory() != null) p.setProductCategory(dto.productCategory());
+        if (dto.price() != null) p.setPrice(dto.price());
 
-        // обычно состояние/остаток в update не меняют этим эндпойнтом
-        // но если по ТЗ надо — добавишь аналогично create()
+        // по тесту update не проверяет quantityState/productState, но можно поддержать
+        if (dto.quantityState() != null) p.setQuantityState(dto.quantityState());
+        if (dto.productState() != null) p.setProductState(dto.productState());
 
         return toDto(repo.save(p));
     }
@@ -74,19 +78,15 @@ public class ProductService {
         return true;
     }
 
-    public boolean setQuantityState(SetProductQuantityStateRequest req) {
-        Product p = repo.findById(req.productId()).orElseThrow(() -> new ProductNotFoundException(req.productId()));
-        p.setQuantityState(req.quantityState());
+    public boolean setQuantityState(UUID productId, QuantityState quantityState) {
+        Product p = repo.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
+        p.setQuantityState(quantityState);
         repo.save(p);
         return true;
     }
 
-    private void applyEditableFields(Product p, ProductDto dto) {
-        if (dto.productName() != null) p.setProductName(dto.productName());
-        if (dto.description() != null) p.setDescription(dto.description());
-        if (dto.imageSrc() != null) p.setImageSrc(dto.imageSrc());
-        if (dto.productCategory() != null) p.setProductCategory(dto.productCategory());
-        if (dto.price() != null) p.setPrice(dto.price());
+    public boolean setQuantityState(SetProductQuantityStateRequest req) {
+        return setQuantityState(req.productId(), req.quantityState());
     }
 
     private ProductDto toDto(Product p) {
