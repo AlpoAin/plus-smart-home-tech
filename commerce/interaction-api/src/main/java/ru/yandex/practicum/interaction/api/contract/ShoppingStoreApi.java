@@ -2,7 +2,6 @@ package ru.yandex.practicum.interaction.api.contract;
 
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Page;
 
 import ru.yandex.practicum.interaction.api.dto.store.ProductCategory;
 import ru.yandex.practicum.interaction.api.dto.store.ProductDto;
@@ -16,7 +15,7 @@ public interface ShoppingStoreApi {
     String BASE = "/api/v1/shopping-store";
 
     @GetMapping(BASE)
-    Page<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category,
+    List<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category,
                                  @RequestParam(defaultValue = "0") int page,
                                  @RequestParam(defaultValue = "10") int size,
                                  @RequestParam(required = false) List<String> sort);

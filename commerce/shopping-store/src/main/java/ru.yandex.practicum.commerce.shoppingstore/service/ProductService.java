@@ -1,6 +1,5 @@
 package ru.yandex.practicum.commerce.shoppingstore.service;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -21,17 +20,20 @@ public class ProductService {
         this.repo = repo;
     }
 
-    public Page<ProductDto> getProducts(ProductCategory category, int page, int size, List<String> sort) {
+    // ВАЖНО: возвращаем List, не Page (тесты ждут массив)
+    public List<ProductDto> getProducts(ProductCategory category, int page, int size, List<String> sort) {
         Sort s = buildSort(sort);
         PageRequest pr = PageRequest.of(page, size, s);
 
         if (category == null) {
             return repo.findByProductState(ProductState.ACTIVE, pr)
-                    .map(this::toDto);
+                    .map(this::toDto)
+                    .getContent();
         }
 
         return repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pr)
-                .map(this::toDto);
+                .map(this::toDto)
+                .getContent();
     }
 
     public ProductDto getProduct(UUID id) {
@@ -43,14 +45,14 @@ public class ProductService {
         Product p = new Product();
         p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
 
+        // дефолты, чтобы продукт не "пропал" из выдачи
         p.setProductState(ProductState.ACTIVE);
+        if (p.getQuantityState() == null) {
+            p.setQuantityState(QuantityState.ENDED);
+        }
 
-        p.setQuantityState(QuantityState.ENDED);
-
-        applyForCreateOrUpdate(p, dto);
-
-        Product saved = repo.save(p);
-        return toDto(saved);
+        applyNotNull(p, dto);
+        return toDto(repo.save(p));
     }
 
     public ProductDto update(ProductDto dto) {
@@ -58,11 +60,8 @@ public class ProductService {
             throw new IllegalArgumentException("productId is required for update");
         }
         Product p = repo.findById(dto.productId()).orElseThrow(() -> new ProductNotFoundException(dto.productId()));
-
-        applyForCreateOrUpdate(p, dto);
-
-        Product saved = repo.save(p);
-        return toDto(saved);
+        applyNotNull(p, dto);
+        return toDto(repo.save(p));
     }
 
     public boolean deactivate(UUID id) {
@@ -79,14 +78,13 @@ public class ProductService {
         return true;
     }
 
-    private void applyForCreateOrUpdate(Product p, ProductDto dto) {
+    // Не затираем поля null-ами
+    private void applyNotNull(Product p, ProductDto dto) {
         if (dto.productName() != null) p.setProductName(dto.productName());
         if (dto.description() != null) p.setDescription(dto.description());
         if (dto.imageSrc() != null) p.setImageSrc(dto.imageSrc());
-
         if (dto.quantityState() != null) p.setQuantityState(dto.quantityState());
         if (dto.productState() != null) p.setProductState(dto.productState());
-
         if (dto.productCategory() != null) p.setProductCategory(dto.productCategory());
         if (dto.price() != null) p.setPrice(dto.price());
     }

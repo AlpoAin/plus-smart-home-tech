@@ -3,7 +3,7 @@ package ru.yandex.practicum.commerce.shoppingstore.controller;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.domain.Page;
+
 import ru.yandex.practicum.commerce.shoppingstore.service.ProductService;
 import ru.yandex.practicum.interaction.api.contract.ShoppingStoreApi;
 import ru.yandex.practicum.interaction.api.dto.store.*;
@@ -21,7 +21,7 @@ public class ShoppingStoreController implements ShoppingStoreApi {
     }
 
     @Override
-    public Page<ProductDto> getProducts(
+    public List<ProductDto> getProducts(
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(defaultValue = "0", required = false) int page,
             @RequestParam(defaultValue = "10", required = false) int size,
