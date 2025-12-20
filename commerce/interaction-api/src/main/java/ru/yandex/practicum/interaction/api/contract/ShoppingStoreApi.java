@@ -16,9 +16,9 @@ public interface ShoppingStoreApi {
     String BASE = "/api/v1/shopping-store";
 
     @GetMapping(BASE)
-    Page<ProductDto> getProducts(@RequestParam ProductCategory category,
-                                 @RequestParam int page,
-                                 @RequestParam int size,
+    Page<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category,
+                                 @RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "10") int size,
                                  @RequestParam(required = false) List<String> sort);
 
     @PutMapping(BASE)
