@@ -4,28 +4,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public record ProductsPageResponse(
-        @JsonProperty("content") List<ProductDto> content,
-        Page page
+        List<ProductDto> items,
+        int page,
+        int size,
+        long totalElements,
+        int totalPages
 ) {
-    // Если хочешь оставить совместимость со старым форматом:
-    @JsonProperty("items")
-    public List<ProductDto> items() {
-        return content;
+    // алиас как у Spring Page: content[]
+    @JsonProperty("content")
+    public List<ProductDto> content() {
+        return items;
     }
 
-    // Если вдруг где-то ещё ждут products — можно тоже оставить алиасом:
+    // иногда тесты читают products[]
     @JsonProperty("products")
     public List<ProductDto> products() {
-        return content;
+        return items;
     }
 
-    public ProductsPageResponse(List<ProductDto> content,
-                                int number,
-                                int size,
-                                long totalElements,
-                                int totalPages) {
-        this(content, new Page(size, number, totalElements, totalPages));
+    // алиас номера страницы как у Spring Page: number
+    @JsonProperty("number")
+    public int number() {
+        return page;
     }
-
-    public record Page(int size, int number, long totalElements, int totalPages) { }
 }
