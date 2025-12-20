@@ -3,20 +3,19 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/smart_home
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/smart_home
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:password}
   jpa:
     hibernate:
       ddl-auto: validate
     properties:
-      hibernate.default_schema: shopping_cart
+      hibernate:
+        default_schema: shopping_cart
   sql:
     init:
       mode: always
       schema-locations: classpath:schema.sql
-
-spring:
   cloud:
     openfeign:
       circuitbreaker:
