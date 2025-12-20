@@ -55,7 +55,7 @@ public class ProductService {
 
         applyEditableFields(p, dto);
 
-        p.setProductState(ProductState.ACTIVE);
+        p.setProductState(dto.productState() != null ? dto.productState() : ProductState.ACTIVE);
         p.setQuantityState(dto.quantityState() != null ? dto.quantityState() : QuantityState.ENDED);
 
         /*if (p.getQuantityState() == null) {
