@@ -3,12 +3,12 @@ package ru.yandex.practicum.commerce.shoppingstore.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.commerce.shoppingstore.model.Product;
 import ru.yandex.practicum.commerce.shoppingstore.repo.ProductRepository;
 import ru.yandex.practicum.interaction.api.dto.store.*;
 import ru.yandex.practicum.interaction.api.exception.ProductNotFoundException;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,9 +20,9 @@ public class ProductService {
         this.repo = repo;
     }
 
-    public List<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
+    public Page<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
         Page<Product> productPage = repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pageable);
-        return productPage.map(this::toDto).getContent();
+        return productPage.map(this::toDto);
     }
 
     public ProductDto getProduct(UUID id) {
@@ -77,6 +77,7 @@ public class ProductService {
         return true;
     }
 
+    @Transactional
     public boolean setQuantityState(UUID productId, QuantityState quantityState) {
         Product p = repo.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
         p.setQuantityState(quantityState);
