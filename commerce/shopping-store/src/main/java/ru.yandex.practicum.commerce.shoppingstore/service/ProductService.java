@@ -43,13 +43,13 @@ public class ProductService {
         Product p = new Product();
         p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
 
-        p.setProductState(ProductState.ACTIVE);
+        /*p.setProductState(ProductState.ACTIVE);
         if (p.getQuantityState() == null) {
             p.setQuantityState(QuantityState.ENDED);
-        }
+        }*/
 
         applyNotNull(p, dto);
-
+        // defaults/forced fields — ПОСЛЕ маппинга костм до ретурн
         if (p.getQuantityState() == null) {
             p.setQuantityState(QuantityState.ENDED);
         }
