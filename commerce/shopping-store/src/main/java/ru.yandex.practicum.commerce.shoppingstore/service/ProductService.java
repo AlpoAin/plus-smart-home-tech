@@ -49,6 +49,12 @@ public class ProductService {
         }
 
         applyNotNull(p, dto);
+
+        if (p.getQuantityState() == null) {
+            p.setQuantityState(QuantityState.ENDED);
+        }
+        p.setProductState(ProductState.ACTIVE);
+
         return toDto(repo.save(p));
     }
 
@@ -79,8 +85,8 @@ public class ProductService {
         if (dto.productName() != null) p.setProductName(dto.productName());
         if (dto.description() != null) p.setDescription(dto.description());
         if (dto.imageSrc() != null) p.setImageSrc(dto.imageSrc());
-        if (dto.quantityState() != null) p.setQuantityState(dto.quantityState());
-        if (dto.productState() != null) p.setProductState(dto.productState());
+        //if (dto.quantityState() != null) p.setQuantityState(dto.quantityState());
+        //if (dto.productState() != null) p.setProductState(dto.productState());
         if (dto.productCategory() != null) p.setProductCategory(dto.productCategory());
         if (dto.price() != null) p.setPrice(dto.price());
     }
