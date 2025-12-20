@@ -17,15 +17,14 @@ public class PageImplJsonSerializer extends StdSerializer<PageImpl> {
     public void serialize(PageImpl value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
 
-        // основной список (как сейчас)
+        // content
         gen.writeFieldName("content");
         provider.defaultSerializeValue(value.getContent(), gen);
 
-        // алиас для тестов (часто тест ждёт именно products[0])
+        // алиас под тесты: response.products[0]
         gen.writeFieldName("products");
         provider.defaultSerializeValue(value.getContent(), gen);
 
-        // мета в формате, который у тебя уже появляется
         gen.writeObjectFieldStart("page");
         gen.writeNumberField("size", value.getSize());
         gen.writeNumberField("number", value.getNumber());
