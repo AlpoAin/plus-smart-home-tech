@@ -4,6 +4,9 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.interaction.api.dto.store.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,10 +17,10 @@ public interface ShoppingStoreApi {
     String BASE = "/api/v1/shopping-store";
 
     @GetMapping(BASE)
-    Page<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category,
-                                 @RequestParam(defaultValue = "0") int page,
-                                 @RequestParam(defaultValue = "10") int size,
-                                 @RequestParam(required = false) List<String> sort);
+    Page<ProductDto> getProducts(
+            @RequestParam(required = false) ProductCategory category,
+            @PageableDefault(sort = {"productName"}) Pageable pageable
+    );
 
     @PutMapping(BASE)
     ProductDto createNewProduct(@Valid @RequestBody ProductDto productDto);
