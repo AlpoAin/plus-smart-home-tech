@@ -29,7 +29,10 @@ public interface ShoppingStoreApi {
     boolean removeProductFromStore(@RequestBody UUID productId);
 
     @PostMapping(BASE + "/quantityState")
-    boolean setProductQuantityState(@RequestBody SetProductQuantityStateRequest request);
+    boolean setProductQuantityState(
+            @RequestParam("productId") UUID productId,
+            @RequestParam("quantityState") QuantityState quantityState
+    );
 
     @GetMapping(BASE + "/{productId}")
     ProductDto getProduct(@PathVariable UUID productId);

@@ -8,6 +8,9 @@ spring:
       discovery:
         enabled: true
         serviceId: config-server
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
 
 eureka:
   client:
