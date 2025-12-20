@@ -1,5 +1,6 @@
 package ru.yandex.practicum.interaction.api.dto.store;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public record ProductsPageResponse(
@@ -7,6 +8,11 @@ public record ProductsPageResponse(
         List<ProductDto> products,
         Page page
 ) {
+    @JsonProperty("items")
+    public List<ProductDto> items() {
+        return content;
+    }
+
     public ProductsPageResponse(List<ProductDto> items,
                                 int number,
                                 int size,
