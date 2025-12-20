@@ -22,27 +22,24 @@ public class ProductService {
         this.repo = repo;
     }
 
-    public ProductsPageResponse getProducts(
-            ProductCategory category,
-            int page,
-            int size,
-            List<String> sort
-    ) {
+    public ProductsPageResponse getProducts(ProductCategory category, int page, int size, List<String> sort) {
         Sort s = buildSort(sort);
         PageRequest pr = PageRequest.of(page, size, s);
 
-        Page<Product> result = (category == null)
+        Page<Product> productPage = (category == null)
                 ? repo.findByProductState(ProductState.ACTIVE, pr)
                 : repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pr);
 
-        Page<ProductDto> dtoPage = result.map(this::toDto);
+        List<ProductDto> items = productPage.getContent().stream()
+                .map(this::toDto)
+                .toList();
 
         return new ProductsPageResponse(
-                dtoPage.getContent(),   // ← products
-                dtoPage.getNumber(),
-                dtoPage.getSize(),
-                dtoPage.getTotalElements(),
-                dtoPage.getTotalPages()
+                items,
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.getTotalElements(),
+                productPage.getTotalPages()
         );
     }
 
