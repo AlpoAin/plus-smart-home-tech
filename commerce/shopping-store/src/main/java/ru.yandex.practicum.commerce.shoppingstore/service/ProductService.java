@@ -21,7 +21,7 @@ public class ProductService {
     }
 
     public Page<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
-        Page<Product> productPage = repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pageable);
+        Page<Product> productPage = repo.findByProductCategory(category, pageable);
         return productPage.map(this::toDto);
     }
 
