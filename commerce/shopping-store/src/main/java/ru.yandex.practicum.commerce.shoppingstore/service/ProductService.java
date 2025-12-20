@@ -44,9 +44,11 @@ public class ProductService {
         p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
 
         p.setProductState(ProductState.ACTIVE);
-        if (p.getQuantityState() == null) {
+        p.setQuantityState(dto.quantityState() != null ? dto.quantityState() : QuantityState.ENDED);
+
+        /*if (p.getQuantityState() == null) {
             p.setQuantityState(QuantityState.ENDED);
-        }
+        }*/
 
         applyNotNull(p, dto);
         return toDto(repo.save(p));
