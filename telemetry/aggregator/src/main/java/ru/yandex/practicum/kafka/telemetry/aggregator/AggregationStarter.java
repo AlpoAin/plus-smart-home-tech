@@ -6,17 +6,15 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.kafka.telemetry.aggregator.config.KafkaConfig;
 import ru.yandex.practicum.kafka.telemetry.aggregator.serialization.SensorEventDeserializer;
-import ru.yandex.practicum.kafka.telemetry.event.*;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
+import ru.yandex.practicum.kafka.telemetry.event.SensorStateAvro;
+import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,10 +25,16 @@ import static ru.yandex.practicum.kafka.telemetry.aggregator.AvroBytes.toBytes;
 @RequiredArgsConstructor
 public class AggregationStarter {
 
-    @Value("${spring.kafka.bootstrap-servers}") private String bootstrapServers;
-    @Value("${app.kafka.group-id}")           private String groupId;
-    @Value("${app.topics.sensors}")           private String sensorsTopic;
-    @Value("${app.topics.snapshots}")         private String snapshotsTopic;
+    @Value("${app.kafka.group-id}")
+    private String groupId;
+
+    @Value("${app.topics.sensors}")
+    private String sensorsTopic;
+
+    @Value("${app.topics.snapshots}")
+    private String snapshotsTopic;
+
+    private final KafkaConfig kafkaConfig;
 
     private final Map<String, SensorsSnapshotAvro> snapshots = new ConcurrentHashMap<>();
 
@@ -38,26 +42,16 @@ public class AggregationStarter {
     private KafkaProducer<String, byte[]> producer;
 
     public void start() {
-        log.info("Starting Aggregator: sensors={}, snapshots={}, bootstrap={}", sensorsTopic, snapshotsTopic, bootstrapServers);
+        log.info("Starting Aggregator: sensors={}, snapshots={}, bootstrap={}",
+                sensorsTopic, snapshotsTopic, kafkaConfig.getBootstrapServers());
 
-        var cProps = new Properties();
-        cProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        cProps.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        cProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        cProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, SensorEventDeserializer.class.getName());
+        var cProps = kafkaConfig.consumerProps(groupId, SensorEventDeserializer.class);
         cProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-        cProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         consumer = new KafkaConsumer<>(cProps);
         consumer.subscribe(List.of(sensorsTopic));
 
-        var pProps = new Properties();
-        pProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        pProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        pProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
-        pProps.put(ProducerConfig.ACKS_CONFIG, "all");
-        pProps.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
-
+        var pProps = kafkaConfig.producerProps();
         producer = new KafkaProducer<>(pProps);
 
         try {
@@ -76,7 +70,8 @@ public class AggregationStarter {
                                 snapshot.getHubId().toString(), // key
                                 payload
                         ));
-                        log.debug("Snapshot updated for hubId={}, sensors={}", snapshot.getHubId(), snapshot.getSensorsState().size());
+                        log.debug("Snapshot updated for hubId={}, sensors={}",
+                                snapshot.getHubId(), snapshot.getSensorsState().size());
                     });
                 });
 

@@ -5,9 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.kafka.telemetry.analyzer.config.KafkaConfig;
 import ru.yandex.practicum.kafka.telemetry.analyzer.serialization.SensorsSnapshotDeserializer;
 import ru.yandex.practicum.kafka.telemetry.analyzer.service.ScenarioEngine;
 import ru.yandex.practicum.kafka.telemetry.event.SensorsSnapshotAvro;
@@ -21,27 +21,22 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class SnapshotProcessor {
 
-    @Value("${spring.kafka.bootstrap-servers}")
-    private String bootstrapServers;
-
     @Value("${app.kafka.snapshots-group-id}")
     private String groupId;
 
     @Value("${app.topics.snapshots}")
     private String snapshotsTopic;
 
+    private final KafkaConfig kafkaConfig;
+
     private final ScenarioEngine scenarioEngine;
 
     public void start() {
-        log.info("Starting SnapshotProcessor on topic {}", snapshotsTopic);
+        log.info("Starting SnapshotProcessor on topic {}, bootstrap={}",
+                snapshotsTopic, kafkaConfig.getBootstrapServers());
 
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, SensorsSnapshotDeserializer.class.getName());
+        Properties props = kafkaConfig.consumerProps(groupId, SensorsSnapshotDeserializer.class);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
         try (KafkaConsumer<String, SensorsSnapshotAvro> consumer = new KafkaConsumer<>(props)) {
             consumer.subscribe(List.of(snapshotsTopic));
