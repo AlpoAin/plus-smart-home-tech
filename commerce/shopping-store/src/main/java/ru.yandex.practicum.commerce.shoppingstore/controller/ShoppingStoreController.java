@@ -1,7 +1,6 @@
 package ru.yandex.practicum.commerce.shoppingstore.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
@@ -10,6 +9,7 @@ import ru.yandex.practicum.commerce.shoppingstore.service.ProductService;
 import ru.yandex.practicum.interaction.api.contract.ShoppingStoreApi;
 import ru.yandex.practicum.interaction.api.dto.store.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -24,8 +24,8 @@ public class ShoppingStoreController implements ShoppingStoreApi {
 
     @Override
     @GetMapping(value = BASE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<ProductDto> getProducts(
-            @RequestParam(required = false) ProductCategory category,
+    public List<ProductDto> getProducts(
+            @RequestParam ProductCategory category,
             @PageableDefault(sort = {"productName"}) Pageable pageable
     ) {
         return service.getProducts(category, pageable);
@@ -49,15 +49,6 @@ public class ShoppingStoreController implements ShoppingStoreApi {
         return service.deactivate(productId);
     }
 
-    // ТЕСТОВЫЙ ВАРИАНТ: query params
-    @Override
-    @PostMapping(value = BASE + "/quantityState", params = {"productId", "quantityState"})
-    public boolean setProductQuantityStateFromParams(@RequestParam UUID productId,
-                                                     @RequestParam QuantityState quantityState) {
-        return service.setQuantityState(productId, quantityState);
-    }
-
-    // Доп вариант: body
     @Override
     @PostMapping(value = BASE + "/quantityState", produces = MediaType.APPLICATION_JSON_VALUE)
     public boolean setProductQuantityState(@Valid @RequestBody SetProductQuantityStateRequest request) {

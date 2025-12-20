@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.commerce.shoppingstore.model.Product;
 import ru.yandex.practicum.commerce.shoppingstore.repo.ProductRepository;
 import ru.yandex.practicum.interaction.api.dto.store.*;
+import ru.yandex.practicum.interaction.api.exception.ProductNotFoundException;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -18,12 +20,9 @@ public class ProductService {
         this.repo = repo;
     }
 
-    public Page<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
-        Page<Product> productPage = (category == null)
-                ? repo.findByProductState(ProductState.ACTIVE, pageable)
-                : repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pageable);
-
-        return productPage.map(this::toDto);
+    public List<ProductDto> getProducts(ProductCategory category, Pageable pageable) {
+        Page<Product> productPage = repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pageable);
+        return productPage.map(this::toDto).getContent();
     }
 
     public ProductDto getProduct(UUID id) {

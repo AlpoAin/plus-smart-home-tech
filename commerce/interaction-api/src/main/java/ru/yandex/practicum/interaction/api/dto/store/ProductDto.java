@@ -1,8 +1,8 @@
 package ru.yandex.practicum.interaction.api.dto.store;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -12,11 +12,11 @@ public record ProductDto(
 
         @NotBlank String productName,
         @NotBlank String description,
-        @NotBlank String imageSrc,
+        String imageSrc,  // nullable по ТЗ
 
         @NotNull QuantityState quantityState,
         @NotNull ProductState productState,
-        @NotNull ProductCategory productCategory,
+        ProductCategory productCategory,  // дополнительное поле, не обязательное
 
-        @NotNull @Positive BigDecimal price
+        @NotNull @Min(1) BigDecimal price
 ) {}
