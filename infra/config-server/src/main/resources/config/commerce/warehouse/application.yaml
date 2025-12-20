@@ -1,0 +1,17 @@
+server:
+  port: 0
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/smart_home
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.default_schema: warehouse
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
