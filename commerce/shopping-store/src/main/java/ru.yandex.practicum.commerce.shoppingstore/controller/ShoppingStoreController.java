@@ -21,7 +21,7 @@ public class ShoppingStoreController {
         this.service = service;
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ProductsPageResponse getProducts(
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(defaultValue = "0") int page,
@@ -30,6 +30,7 @@ public class ShoppingStoreController {
     ) {
         return service.getProducts(category, page, size, sort);
     }
+
 
 
     @PutMapping

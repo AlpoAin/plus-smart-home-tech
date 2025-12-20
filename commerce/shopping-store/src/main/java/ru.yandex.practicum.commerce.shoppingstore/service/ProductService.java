@@ -23,7 +23,7 @@ public class ProductService {
         this.repo = repo;
     }
 
-    public Map<String, Object> getProducts(ProductCategory category, int page, int size, List<String> sort) {
+    public ProductsPageResponse getProducts(ProductCategory category, int page, int size, List<String> sort) {
         Sort s = buildSort(sort);
         PageRequest pr = PageRequest.of(page, size, s);
 
@@ -35,19 +35,12 @@ public class ProductService {
                 .map(this::toDto)
                 .toList();
 
-        Map<String, Object> pageInfo = Map.of(
-                "size", productPage.getSize(),
-                "number", productPage.getNumber(),
-                "totalElements", productPage.getTotalElements(),
-                "totalPages", productPage.getTotalPages()
-        );
-
-        // чтобы тесты не спорили о названии массива — можно оставить алиасы:
-        return Map.of(
-                "page", pageInfo,
-                "content", content,
-                "items", content,
-                "products", content
+        return new ProductsPageResponse(
+                content,
+                productPage.getNumber(),
+                productPage.getSize(),
+                productPage.getTotalElements(),
+                productPage.getTotalPages()
         );
     }
 
