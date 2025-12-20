@@ -41,7 +41,8 @@ public class ProductService {
 
     public ProductDto create(ProductDto dto) {
         Product p = new Product();
-        p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
+        p.setProductId(UUID.randomUUID());
+        //p.setProductId(dto.productId() == null ? UUID.randomUUID() : dto.productId());
 
         /*p.setProductState(ProductState.ACTIVE);
         if (p.getQuantityState() == null) {
