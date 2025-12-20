@@ -11,6 +11,7 @@ import ru.yandex.practicum.interaction.api.dto.store.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -22,25 +23,26 @@ public class ProductService {
         this.repo = repo;
     }
 
-    public ProductsPageResponse getProducts(ProductCategory category, int page, int size, List<String> sort) {
+    public Map<String, Object> getProducts(ProductCategory category, int page, int size, List<String> sort) {
         Sort s = buildSort(sort);
         PageRequest pr = PageRequest.of(page, size, s);
 
         Page<Product> productPage = (category == null)
-                ? repo.findByProductState(ProductState.ACTIVE, pr)
-                : repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pr);
+                ? repo.findAll(pr)                       // без фильтра ACTIVE
+                : repo.findByProductCategory(category, pr);
 
-        List<ProductDto> items = productPage.getContent().stream()
+        List<ProductDto> content = productPage.getContent().stream()
                 .map(this::toDto)
                 .toList();
 
-        return new ProductsPageResponse(
-                items,
-                productPage.getNumber(),
-                productPage.getSize(),
-                productPage.getTotalElements(),
-                productPage.getTotalPages()
+        Map<String, Object> pageInfo = Map.of(
+                "size", productPage.getSize(),
+                "number", productPage.getNumber(),
+                "totalElements", productPage.getTotalElements(),
+                "totalPages", productPage.getTotalPages()
         );
+
+        return Map.of("page", pageInfo, "content", content);
     }
 
 

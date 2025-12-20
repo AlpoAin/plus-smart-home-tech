@@ -8,6 +8,7 @@ import ru.yandex.practicum.interaction.api.contract.ShoppingStoreApi;
 import ru.yandex.practicum.interaction.api.dto.store.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -21,7 +22,7 @@ public class ShoppingStoreController {
     }
 
     @GetMapping
-    public ProductsPageResponse getProducts(
+    public Map<String, Object> getProducts(
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
