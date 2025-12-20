@@ -21,18 +21,30 @@ public class ProductService {
         this.repo = repo;
     }
 
-    public Page<ProductDto> getProducts(ProductCategory category, int page, int size, List<String> sort) {
+    public ProductsPageResponse getProducts(
+            ProductCategory category,
+            int page,
+            int size,
+            List<String> sort
+    ) {
         Sort s = buildSort(sort);
         PageRequest pr = PageRequest.of(page, size, s);
 
-        if (category == null) {
-            return repo.findByProductState(ProductState.ACTIVE, pr)
-                    .map(this::toDto);
-        }
+        Page<Product> result = (category == null)
+                ? repo.findByProductState(ProductState.ACTIVE, pr)
+                : repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pr);
 
-        return repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pr)
-                .map(this::toDto);
+        Page<ProductDto> dtoPage = result.map(this::toDto);
+
+        return new ProductsPageResponse(
+                dtoPage.getContent(),   // ← products
+                dtoPage.getNumber(),
+                dtoPage.getSize(),
+                dtoPage.getTotalElements(),
+                dtoPage.getTotalPages()
+        );
     }
+
 
     public ProductDto getProduct(UUID id) {
         Product p = repo.findById(id).orElseThrow(() -> new ProductNotFoundException(id));

@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.commerce.shoppingstore.service.ProductService;
 import ru.yandex.practicum.interaction.api.contract.ShoppingStoreApi;
 import ru.yandex.practicum.interaction.api.dto.store.*;
+import ru.yandex.practicum.interaction.api.dto.store.ProductsPageResponse;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -21,7 +23,7 @@ public class ShoppingStoreController implements ShoppingStoreApi {
     }
 
     @Override
-    public Page<ProductDto> getProducts(
+    public ProductsPageResponse getProducts(
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(defaultValue = "0", required = false) int page,
             @RequestParam(defaultValue = "10", required = false) int size,

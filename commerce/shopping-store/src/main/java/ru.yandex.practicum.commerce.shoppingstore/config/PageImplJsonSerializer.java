@@ -7,21 +7,21 @@ import org.springframework.data.domain.PageImpl;
 
 import java.io.IOException;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class PageImplJsonSerializer extends StdSerializer<PageImpl> {
 
     public PageImplJsonSerializer() {
-        super(PageImpl.class);
+        super((Class) PageImpl.class);
     }
 
     @Override
     public void serialize(PageImpl value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
 
-        // content
         gen.writeFieldName("content");
         provider.defaultSerializeValue(value.getContent(), gen);
 
-        // алиас под тесты: response.products[0]
+        // алиас под тесты
         gen.writeFieldName("products");
         provider.defaultSerializeValue(value.getContent(), gen);
 
