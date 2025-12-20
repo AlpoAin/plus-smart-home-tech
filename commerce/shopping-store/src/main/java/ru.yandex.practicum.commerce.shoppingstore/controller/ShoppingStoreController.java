@@ -51,11 +51,8 @@ public class ShoppingStoreController implements ShoppingStoreApi {
 
     @Override
     @PostMapping(value = BASE + "/quantityState", produces = MediaType.APPLICATION_JSON_VALUE)
-    public boolean setProductQuantityState(
-            @RequestParam("productId") UUID productId,
-            @RequestParam("quantityState") QuantityState quantityState
-    ) {
-        return service.setQuantityState(productId, quantityState);
+    public boolean setProductQuantityState(@RequestBody SetProductQuantityStateRequest request) {
+        return service.setQuantityState(request);
     }
 
     @Override
