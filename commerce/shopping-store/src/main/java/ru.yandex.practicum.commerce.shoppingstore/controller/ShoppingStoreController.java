@@ -1,6 +1,7 @@
 package ru.yandex.practicum.commerce.shoppingstore.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.commerce.shoppingstore.service.ProductService;
@@ -8,7 +9,6 @@ import ru.yandex.practicum.interaction.api.contract.ShoppingStoreApi;
 import ru.yandex.practicum.interaction.api.dto.store.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -21,8 +21,12 @@ public class ShoppingStoreController {
         this.service = service;
     }
 
+    /**
+     * ВАЖНО: возвращаем Page<ProductDto>, чтобы тесты видели:
+     * content[0], pageable, sort, totalElements, totalPages и т.д.
+     */
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ProductsPageResponse getProducts(
+    public Page<ProductDto> getProducts(
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -30,8 +34,6 @@ public class ShoppingStoreController {
     ) {
         return service.getProducts(category, page, size, sort);
     }
-
-
 
     @PutMapping
     public ProductDto createNewProduct(@Valid @RequestBody ProductDto productDto) {
@@ -48,7 +50,6 @@ public class ShoppingStoreController {
         return service.deactivate(productId);
     }
 
-    // если тесты требуют вариант с query params — оставляем
     @PostMapping(
             value = "/quantityState",
             params = {"productId", "quantityState"},
@@ -69,4 +70,3 @@ public class ShoppingStoreController {
         return service.getProduct(productId);
     }
 }
-//

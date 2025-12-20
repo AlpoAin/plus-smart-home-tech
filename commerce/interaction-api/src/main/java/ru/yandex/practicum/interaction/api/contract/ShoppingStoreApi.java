@@ -4,17 +4,17 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.interaction.api.dto.store.*;
-import ru.yandex.practicum.interaction.api.dto.store.ProductsPageResponse;
 
 import java.util.List;
 import java.util.UUID;
+
 
 public interface ShoppingStoreApi {
 
     String BASE = "/api/v1/shopping-store";
 
     @GetMapping(BASE)
-    ProductsPageResponse getProducts(@RequestParam(required = false) ProductCategory category,
+    Page<ProductDto> getProducts(@RequestParam(required = false) ProductCategory category,
                                  @RequestParam(defaultValue = "0") int page,
                                  @RequestParam(defaultValue = "10") int size,
                                  @RequestParam(required = false) List<String> sort);

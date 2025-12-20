@@ -8,10 +8,8 @@ import ru.yandex.practicum.commerce.shoppingstore.model.Product;
 import ru.yandex.practicum.commerce.shoppingstore.repo.ProductRepository;
 import ru.yandex.practicum.interaction.api.dto.store.*;
 
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -23,28 +21,21 @@ public class ProductService {
         this.repo = repo;
     }
 
-    public ProductsPageResponse getProducts(ProductCategory category, int page, int size, List<String> sort) {
+    /**
+     * ВАЖНО для тестов: возвращаем именно Page<ProductDto>,
+     * чтобы в JSON были content + pageable + sort и т.п.
+     * Также фильтруем только ACTIVE товары.
+     */
+    public Page<ProductDto> getProducts(ProductCategory category, int page, int size, List<String> sort) {
         Sort s = buildSort(sort);
         PageRequest pr = PageRequest.of(page, size, s);
 
         Page<Product> productPage = (category == null)
-                ? repo.findAll(pr)
-                : repo.findByProductCategory(category, pr);
+                ? repo.findByProductState(ProductState.ACTIVE, pr)
+                : repo.findByProductCategoryAndProductState(category, ProductState.ACTIVE, pr);
 
-        List<ProductDto> content = productPage.getContent().stream()
-                .map(this::toDto)
-                .toList();
-
-        return new ProductsPageResponse(
-                content,
-                productPage.getNumber(),
-                productPage.getSize(),
-                productPage.getTotalElements(),
-                productPage.getTotalPages()
-        );
+        return productPage.map(this::toDto);
     }
-
-
 
     public ProductDto getProduct(UUID id) {
         Product p = repo.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
@@ -60,9 +51,6 @@ public class ProductService {
         p.setProductState(dto.productState() != null ? dto.productState() : ProductState.ACTIVE);
         p.setQuantityState(dto.quantityState() != null ? dto.quantityState() : QuantityState.ENDED);
 
-        /*if (p.getQuantityState() == null) {
-            p.setQuantityState(QuantityState.ENDED);
-        }*/
         return toDto(repo.save(p));
     }
 
@@ -89,16 +77,6 @@ public class ProductService {
         return true;
     }
 
-    private void applyNotNull(Product p, ProductDto dto) {
-        if (dto.productName() != null) p.setProductName(dto.productName());
-        if (dto.description() != null) p.setDescription(dto.description());
-        if (dto.imageSrc() != null) p.setImageSrc(dto.imageSrc());
-        if (dto.quantityState() != null) p.setQuantityState(dto.quantityState());
-        if (dto.productState() != null) p.setProductState(dto.productState());
-        if (dto.productCategory() != null) p.setProductCategory(dto.productCategory());
-        if (dto.price() != null) p.setPrice(dto.price());
-    }
-
     private void applyEditableFields(Product p, ProductDto dto) {
         if (dto.productName() != null) p.setProductName(dto.productName());
         if (dto.description() != null) p.setDescription(dto.description());
@@ -120,6 +98,12 @@ public class ProductService {
         );
     }
 
+    /**
+     * Поддерживает варианты:
+     * sort=price,DESC
+     * sort=price,DESC&sort=productName,ASC
+     * sort=price,DESC,productName,ASC
+     */
     private Sort buildSort(List<String> sortParams) {
         if (sortParams == null || sortParams.isEmpty()) {
             return Sort.unsorted();
@@ -145,6 +129,7 @@ public class ProductService {
         for (int i = 0; i < tokens.size(); ) {
             String field = tokens.get(i);
 
+            // если внезапно пришло "ASC"/"DESC" без поля — пропустим
             if ("ASC".equalsIgnoreCase(field) || "DESC".equalsIgnoreCase(field)) {
                 i++;
                 continue;
@@ -157,6 +142,7 @@ public class ProductService {
                         : Sort.by(field).ascending());
                 i += 2;
             } else {
+                // если направление не указали — по умолчанию ASC
                 result = result.and(Sort.by(field).ascending());
                 i += 1;
             }
