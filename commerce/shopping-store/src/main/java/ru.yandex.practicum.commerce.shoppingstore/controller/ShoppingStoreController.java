@@ -21,14 +21,22 @@ public class ShoppingStoreController {
         this.service = service;
     }
 
-    @GetMapping
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Map<String, Object> getProducts(
             @RequestParam(required = false) ProductCategory category,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) List<String> sort
     ) {
-        return service.getProducts(category, page, size, sort);
+        ProductsPageResponse resp = service.getProducts(category, page, size, sort);
+        List<ProductDto> list = resp.items();
+
+        return Map.of(
+                "page", resp.page(),
+                "items", list,
+                "products", list,
+                "content", list
+        );
     }
 
     @PutMapping
