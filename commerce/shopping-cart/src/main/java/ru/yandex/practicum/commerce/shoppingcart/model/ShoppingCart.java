@@ -1,15 +1,24 @@
 package ru.yandex.practicum.commerce.shoppingcart.model;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
 @Table(name = "carts", schema = "shopping_cart")
 public class ShoppingCart {
 
+    @EqualsAndHashCode.Include
     @Id
     @Column(name = "cart_id", nullable = false)
     private UUID cartId;
@@ -30,13 +39,4 @@ public class ShoppingCart {
     @MapKeyColumn(name = "product_id")
     @Column(name = "quantity", nullable = false)
     private Map<UUID, Long> products = new HashMap<>();
-
-    public UUID getCartId() { return cartId; }
-    public void setCartId(UUID cartId) { this.cartId = cartId; }
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
-    public CartState getState() { return state; }
-    public void setState(CartState state) { this.state = state; }
-    public Map<UUID, Long> getProducts() { return products; }
-    public void setProducts(Map<UUID, Long> products) { this.products = products; }
 }

@@ -1,7 +1,6 @@
 package ru.yandex.practicum.commerce.shoppingcart.service;
 
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.commerce.shoppingcart.client.WarehouseClient;
 import ru.yandex.practicum.commerce.shoppingcart.model.CartState;
 import ru.yandex.practicum.commerce.shoppingcart.model.ShoppingCart;
 import ru.yandex.practicum.commerce.shoppingcart.repo.ShoppingCartRepository;
@@ -14,14 +13,11 @@ import java.util.*;
 public class ShoppingCartService {
 
     private final ShoppingCartRepository repo;
-    private final WarehouseClient warehouseClient; // оставил, если вдруг где-то ещё используется/будет нужно
     private final WarehouseAvailabilityService warehouseAvailabilityService;
 
     public ShoppingCartService(ShoppingCartRepository repo,
-                               WarehouseClient warehouseClient,
                                WarehouseAvailabilityService warehouseAvailabilityService) {
         this.repo = repo;
-        this.warehouseClient = warehouseClient;
         this.warehouseAvailabilityService = warehouseAvailabilityService;
     }
 
