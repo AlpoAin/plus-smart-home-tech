@@ -83,6 +83,72 @@ public class WarehouseService {
         return new BookedProductsDto(totalWeight, totalVolume, anyFragile);
     }
 
+    public BookedProductsDto assemblyProductsForOrder(AssemblyProductsForOrderRequest request) {
+        Map<UUID, Long> products = request.products();
+        if (products == null || products.isEmpty()) {
+            return new BookedProductsDto(0, 0, false);
+        }
+
+        List<String> missing = new ArrayList<>();
+        double totalWeight = 0.0;
+        double totalVolume = 0.0;
+        boolean anyFragile = false;
+
+        for (var e : products.entrySet()) {
+            UUID productId = e.getKey();
+            long need = e.getValue() == null ? 0 : e.getValue();
+
+            WarehouseProduct p = repo.findById(productId)
+                    .orElseThrow(() -> new NoSpecifiedProductInWarehouseException("No product in warehouse: " + productId));
+
+            if (need <= 0) {
+                missing.add(productId + "(need<=0)");
+                continue;
+            }
+            if (p.getQuantity() < need) {
+                missing.add(productId + " need=" + need + " available=" + p.getQuantity());
+                continue;
+            }
+
+            p.setQuantity(p.getQuantity() - need);
+            repo.save(p);
+
+            totalWeight += p.getWeight() * need;
+            totalVolume += (p.getWidth() * p.getHeight() * p.getDepth()) * need;
+            anyFragile |= p.isFragile();
+        }
+
+        if (!missing.isEmpty()) {
+            throw new ProductInShoppingCartLowQuantityInWarehouseException("Not enough products: " + String.join("; ", missing));
+        }
+
+        return new BookedProductsDto(totalWeight, totalVolume, anyFragile);
+    }
+
+    public void shippedToDelivery(ShippedToDeliveryRequest request) {
+    }
+
+    public void acceptReturn(Map<UUID, Long> products) {
+        if (products == null || products.isEmpty()) {
+            return;
+        }
+
+        for (var e : products.entrySet()) {
+            UUID productId = e.getKey();
+            long quantity = e.getValue() == null ? 0 : e.getValue();
+
+            if (quantity <= 0) {
+                continue;
+            }
+
+            WarehouseProduct p = repo.findById(productId)
+                    .orElseThrow(() -> new NoSpecifiedProductInWarehouseException("No product in warehouse: " + productId));
+
+            p.setQuantity(p.getQuantity() + quantity);
+            repo.save(p);
+        }
+    }
+
     public AddressDto address() {
         return new AddressDto("KZ", "Almaty", "Abylai Khan", "1", "1");
     }

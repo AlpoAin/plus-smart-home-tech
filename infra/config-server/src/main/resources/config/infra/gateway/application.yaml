@@ -25,5 +25,26 @@ spring:
                 methods: GET
                 statuses: NOT_FOUND
 
+        - id: order_service_route
+          uri: lb://order
+          predicates:
+            - Path=/order,/order/**
+          filters:
+            - PrefixPath=/api/v1
+
+        - id: payment_service_route
+          uri: lb://payment
+          predicates:
+            - Path=/payment,/payment/**
+          filters:
+            - PrefixPath=/api/v1
+
+        - id: delivery_service_route
+          uri: lb://delivery
+          predicates:
+            - Path=/delivery,/delivery/**
+          filters:
+            - PrefixPath=/api/v1
+
 server:
   port: 8080
