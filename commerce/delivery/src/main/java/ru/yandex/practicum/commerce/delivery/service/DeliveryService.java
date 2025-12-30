@@ -1,5 +1,6 @@
 package ru.yandex.practicum.commerce.delivery.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.commerce.delivery.client.OrderClient;
@@ -13,9 +14,11 @@ import ru.yandex.practicum.interaction.api.dto.order.OrderDto;
 import ru.yandex.practicum.interaction.api.dto.warehouse.AddressDto;
 import ru.yandex.practicum.interaction.api.dto.warehouse.ShippedToDeliveryRequest;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class DeliveryService {
 
     private final DeliveryRepository repo;
@@ -24,22 +27,13 @@ public class DeliveryService {
 
     private static final double BASE_COST = 5.0;
 
-    public DeliveryService(DeliveryRepository repo,
-                           WarehouseClient warehouseClient,
-                           OrderClient orderClient) {
-        this.repo = repo;
-        this.warehouseClient = warehouseClient;
-        this.orderClient = orderClient;
-    }
-
     @Transactional
     public DeliveryDto planDelivery(DeliveryDto dto) {
         Delivery delivery = new Delivery();
-        delivery.setDeliveryId(dto.deliveryId() != null ? dto.deliveryId() : UUID.randomUUID());
+        delivery.setDeliveryId(Objects.nonNull(dto.deliveryId()) ? dto.deliveryId() : UUID.randomUUID());
         delivery.setOrderId(dto.orderId());
 
-        // From Address
-        if (dto.fromAddress() != null) {
+        if (Objects.nonNull(dto.fromAddress())) {
             delivery.setFromCountry(dto.fromAddress().country());
             delivery.setFromCity(dto.fromAddress().city());
             delivery.setFromStreet(dto.fromAddress().street());
@@ -47,8 +41,7 @@ public class DeliveryService {
             delivery.setFromFlat(dto.fromAddress().flat());
         }
 
-        // To Address
-        if (dto.toAddress() != null) {
+        if (Objects.nonNull(dto.toAddress())) {
             delivery.setToCountry(dto.toAddress().country());
             delivery.setToCity(dto.toAddress().city());
             delivery.setToStreet(dto.toAddress().street());
@@ -68,7 +61,7 @@ public class DeliveryService {
         double cost = BASE_COST;
 
         String warehouseStreet = warehouseAddress.street();
-        if (warehouseStreet != null) {
+        if (Objects.nonNull(warehouseStreet)) {
             if (warehouseStreet.contains("ADDRESS_1")) {
                 cost *= 1;
             } else if (warehouseStreet.contains("ADDRESS_2")) {
@@ -77,15 +70,15 @@ public class DeliveryService {
             cost += BASE_COST;
         }
 
-        if (order.fragile() != null && order.fragile()) {
+        if (Objects.nonNull(order.fragile()) && order.fragile()) {
             cost += cost * 0.2;
         }
 
-        if (order.deliveryWeight() != null) {
+        if (Objects.nonNull(order.deliveryWeight())) {
             cost += order.deliveryWeight() * 0.3;
         }
 
-        if (order.deliveryVolume() != null) {
+        if (Objects.nonNull(order.deliveryVolume())) {
             cost += order.deliveryVolume() * 0.2;
         }
 
@@ -104,7 +97,6 @@ public class DeliveryService {
 
         orderClient.assembly(delivery.getOrderId());
 
-        // Уведомляем Warehouse
         ShippedToDeliveryRequest request = new ShippedToDeliveryRequest(
                 delivery.getOrderId(),
                 delivery.getDeliveryId()

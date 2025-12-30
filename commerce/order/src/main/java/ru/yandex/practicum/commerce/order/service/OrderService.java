@@ -1,35 +1,25 @@
 package ru.yandex.practicum.commerce.order.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.commerce.order.client.*;
 import ru.yandex.practicum.commerce.order.model.Order;
 import ru.yandex.practicum.commerce.order.repo.OrderRepository;
 import ru.yandex.practicum.commerce.order.service.exceptions.*;
-import ru.yandex.practicum.interaction.api.dto.delivery.DeliveryDto;
-import ru.yandex.practicum.interaction.api.dto.delivery.DeliveryState;
 import ru.yandex.practicum.interaction.api.dto.order.*;
 import ru.yandex.practicum.interaction.api.dto.warehouse.*;
 
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class OrderService {
 
     private final OrderRepository repo;
     private final WarehouseClient warehouseClient;
     private final PaymentClient paymentClient;
     private final DeliveryClient deliveryClient;
-
-    public OrderService(OrderRepository repo,
-                        WarehouseClient warehouseClient,
-                        PaymentClient paymentClient,
-                        DeliveryClient deliveryClient) {
-        this.repo = repo;
-        this.warehouseClient = warehouseClient;
-        this.paymentClient = paymentClient;
-        this.deliveryClient = deliveryClient;
-    }
 
     public List<OrderDto> getClientOrders(String username) {
         if (username == null || username.isBlank()) {
@@ -40,7 +30,6 @@ public class OrderService {
 
     @Transactional
     public OrderDto createNewOrder(CreateNewOrderRequest request) {
-        // Проверка доступности на складе
         BookedProductsDto booked = warehouseClient.checkProductQuantityEnoughForShoppingCart(request.shoppingCart());
 
         Order order = new Order();
@@ -51,7 +40,7 @@ public class OrderService {
         order.setDeliveryWeight(booked.deliveryWeight());
         order.setDeliveryVolume(booked.deliveryVolume());
         order.setFragile(booked.fragile());
-        order.setUsername("defaultUser"); // Можно передать из контекста
+        order.setUsername("defaultUser");
 
         repo.save(order);
         return toDto(order);

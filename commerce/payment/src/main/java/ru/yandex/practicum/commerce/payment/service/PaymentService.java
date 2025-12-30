@@ -1,5 +1,6 @@
 package ru.yandex.practicum.commerce.payment.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.commerce.payment.client.OrderClient;
@@ -14,24 +15,18 @@ import ru.yandex.practicum.interaction.api.dto.payment.PaymentState;
 import ru.yandex.practicum.interaction.api.dto.store.ProductDto;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentService {
 
     private final PaymentRepository repo;
     private final ShoppingStoreClient storeClient;
     private final OrderClient orderClient;
 
-    private static final double TAX_RATE = 0.10; // 10% НДС
-
-    public PaymentService(PaymentRepository repo,
-                          ShoppingStoreClient storeClient,
-                          OrderClient orderClient) {
-        this.repo = repo;
-        this.storeClient = storeClient;
-        this.orderClient = orderClient;
-    }
+    private static final double TAX_RATE = 0.10;
 
     @Transactional
     public PaymentDto createPayment(OrderDto order) {
@@ -39,12 +34,10 @@ public class PaymentService {
             throw new NotEnoughInfoInOrderToCalculateException("Order has no products");
         }
 
-        // Рассчитываем стоимости
         Double productCost = calculateProductCost(order);
-        Double deliveryCost = order.deliveryPrice() != null ? order.deliveryPrice() : 0.0;
+        Double deliveryCost = Objects.nonNull(order.deliveryPrice()) ? order.deliveryPrice() : 0.0;
         Double totalCost = calculateTotalCost(order);
 
-        // Создаем платеж
         Payment payment = new Payment();
         payment.setPaymentId(UUID.randomUUID());
         payment.setOrderId(order.orderId());
@@ -75,16 +68,10 @@ public class PaymentService {
     }
 
     public Double calculateTotalCost(OrderDto order) {
-        // Стоимость товаров
         Double productCost = calculateProductCost(order);
-
-        // НДС (10%)
         Double tax = productCost * TAX_RATE;
+        Double deliveryCost = Objects.nonNull(order.deliveryPrice()) ? order.deliveryPrice() : 0.0;
 
-        // Стоимость доставки
-        Double deliveryCost = order.deliveryPrice() != null ? order.deliveryPrice() : 0.0;
-
-        // Итого
         return productCost + tax + deliveryCost;
     }
 
@@ -96,7 +83,6 @@ public class PaymentService {
         payment.setState(PaymentState.SUCCESS);
         repo.save(payment);
 
-        // Уведомляем Order Service
         orderClient.payment(payment.getOrderId());
     }
 
@@ -108,7 +94,6 @@ public class PaymentService {
         payment.setState(PaymentState.FAILED);
         repo.save(payment);
 
-        // Уведомляем Order Service
         orderClient.paymentFailed(payment.getOrderId());
     }
 
